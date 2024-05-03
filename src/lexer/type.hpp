@@ -14,7 +14,7 @@ enum class TokenType {
     // + - * / % \ < > = 
     // ! ; , . [ ] ( ) { }
     PLUS, MINUS, STAR, SLASH, MODULO, BACKSLASH,
-    LESS_THAN, GREATER_THAN, EQUALS,
+    LESS, GREATER, ASSIGN,
     BANG, SEMICOLON, COMMA, DOT, LEFT_BRACKET, RIGHT_BRACKET,
     LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
 

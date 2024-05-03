@@ -10,6 +10,7 @@
 // #include <string>
 #include <string_view>
 #include <variant>
+#include "identify.hpp"
 #include "type.hpp"
 #include "keyword.hpp"
 #include "number.hpp"
@@ -22,23 +23,31 @@ concept TokenObject = requires(T t) {
     { std::cout << t };
 };
 
-using token_t = std::variant<Keyword, Integer, Real>;
+using token_t = std::variant<Keyword, OneWord, Integer, Real, Identify>;
 
 class Token {
 public:
     // Token(TokenType type, token_t value)
     //     : type(type), value(value) {}
+    Token(TokenType type, char value)
+        : type(type), value(OneWord(value)) {}
+
     Token(TokenType type, std::string_view value)
         : type(type), value(Keyword(value)) {}
     
-    Token(TokenType type, long value)
-        : type(type), value(Integer(value)) {}
+    Token(Integer&& value)
+        : type(TokenType::INT), value(value) {}
     
-    Token(TokenType type, double value)
-        : type(type), value(Real(value)) {}
+    Token(Real&& value)
+        : type(TokenType::DOUBLE), value(value) {}
+
+    Token(Identify&& value)
+        : type(TokenType::IDENTIFIER), value(value) {}
 
     TokenType type;
     token_t value;
+
+    friend std::ostream& operator<<(std::ostream& os, const Token& token);
 };
 
 // helper type for the visitor #4
@@ -47,16 +56,6 @@ struct overloaded : Ts... { using Ts::operator()...; };
 // explicit deduction guide (not needed as of C++20)
 template<class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
-
-template <TokenObject T>
-std::ostream& operator<<(std::ostream& os, const Token& token) {
-    std::visit(overloaded {
-        [&os](auto arg) { os << arg; },
-        [&os](Real arg) { os << std::fixed << arg; },
-        // [&os](const std::string& arg) { os << std::quoted(arg) << ' '; },
-        // [&os](const std::string_view& arg) { os << std::quoted(arg) << ' '; } // Add the string_view overload
-    }, token.value);
-}
 
 } // namespace lexer
 
@@ -97,6 +96,26 @@ namespace lexer {
         const Token THIS(TokenType::THIS, "this");
         const Token A_MINUS(TokenType::A_MINUS, "minus");
         const Token INDEX(TokenType::INDEX, "index");
+
+        // One Character Tokens
+        const Token SEMICOLON(TokenType::SEMICOLON, ';');
+        const Token COMMA(TokenType::COMMA, ',');
+        const Token DOT(TokenType::DOT, '.');
+        const Token L_PAREN(TokenType::LEFT_PAREN, '(');
+        const Token R_PAREN(TokenType::RIGHT_PAREN, ')');
+        const Token L_SQUARE(TokenType::LEFT_BRACKET, '[');
+        const Token R_SQUARE(TokenType::RIGHT_BRACKET, ']');
+        const Token L_BRACE(TokenType::LEFT_BRACE, '{');
+        const Token R_BRACE(TokenType::RIGHT_BRACE, '}');
+        const Token PLUS(TokenType::PLUS, '+');
+        const Token MINUS(TokenType::MINUS, '-');
+        const Token STAR(TokenType::STAR, '*');
+        const Token DIVIDE(TokenType::SLASH, '/');
+        const Token MODULO(TokenType::MODULO, '%');
+        const Token LESS(TokenType::LESS, '<');
+        const Token GREATER(TokenType::GREATER, '>');
+        const Token BANG(TokenType::BANG, '!');
+        const Token ASSIGN(TokenType::ASSIGN, '=');
     } // namespace keywords
 
     const auto KEYWORDS = std::array {
@@ -106,7 +125,12 @@ namespace lexer {
         keywords::IF, keywords::ELSE, keywords::RETURN, keywords::STATIC,
         keywords::NEW, keywords::NEW_ARRAY, keywords::PRINT, keywords::READ_INTEGER, keywords::READ_LINE,
         keywords::FALSE, keywords::TRUE, keywords::NULL_, keywords::THIS, keywords::A_MINUS,
-        keywords::INDEX
+        keywords::INDEX,
+
+        keywords::SEMICOLON, keywords::COMMA, keywords::DOT, keywords::L_PAREN, keywords::R_PAREN,
+        keywords::L_SQUARE, keywords::R_SQUARE, keywords::L_BRACE, keywords::R_BRACE,
+        keywords::PLUS, keywords::MINUS, keywords::STAR, keywords::DIVIDE, keywords::MODULO,
+        keywords::LESS, keywords::GREATER, keywords::BANG, keywords::ASSIGN
     };
 } // namespace lexer
 

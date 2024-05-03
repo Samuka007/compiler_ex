@@ -3,14 +3,14 @@
 
 #include <iostream>
 #include <istream>
+#include <variant>
+#include <vector>
 #include "token.hpp"
 #include "number.hpp"
 #include "keyword.hpp"
 
 namespace lexer {
-    std::istream& operator>>(std::istream& is, Token& token) {
-        
-    }
+    Token lex(std::istream& is);
 }
 
 #endif // LEXER_HPP
