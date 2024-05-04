@@ -1,16 +1,15 @@
-#ifndef LEXER_HPP
-#define LEXER_HPP
+#pragma once
 
-#include <iostream>
+#include <fstream>
 #include <istream>
 #include <variant>
-#include <vector>
+// #include <vector>
 #include "token.hpp"
 #include "number.hpp"
 #include "keyword.hpp"
 
 namespace lexer {
-    Token lex(std::istream& is);
+    Token lex(std::ifstream& is) {
+        return Token(is);
+    }
 }
-
-#endif // LEXER_HPP

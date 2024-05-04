@@ -4,11 +4,10 @@
 #define LEXER_NUMBER_HPP
 
 #include <iostream>
-#include <Optional>
-#include <istream>
+#include <optional>
+#include <fstream>
 
 namespace lexer {
-
     class Integer {
     public:
         Integer(long value)
@@ -19,12 +18,15 @@ namespace lexer {
         return os;
     }
 
-    static std::optional<Integer> parse(std::istream& is) {
+    static std::optional<Integer> parse(std::ifstream& is) {
+        auto pos = is.tellg();
         long value;
         is >> value;
         if (is) {
             return Integer(value);
         }
+        is.clear();
+        is.seekg(pos);
         return std::nullopt;
     }
 
@@ -42,12 +44,14 @@ namespace lexer {
         return os;
     }
 
-    static std::optional<Real> parse(std::istream& is) {
+    static std::optional<Real> parse(std::ifstream& is) {
+        auto pos = is.tellg();
         double value;
         is >> value;
         if (is) {
             return Real(value);
         }
+        is.seekg(pos);
         return std::nullopt;
     }
 

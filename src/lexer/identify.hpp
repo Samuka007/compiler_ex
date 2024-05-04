@@ -1,33 +1,47 @@
 #pragma once
 
 #include <string>
-#include <string_view>
 #include <optional>
-#include <iostream>
-#include "type.hpp"
+#include <fstream>
+#include "../utils.hpp"
 
 namespace lexer {
 class Identify {
     public:
-    Identify(std::string lexeme)
-        : lexeme(lexeme) {}
+    Identify() = delete;
+    Identify(std::string&& lexeme)
+        : lexeme(std::move(lexeme)) {}
 
     friend std::ostream& operator<<(std::ostream& os, const Identify& identify) {
         os << identify.lexeme;
         return os;
     }
 
-    static std::optional<Identify> parse(std::istream& is) {
+    static std::optional<Identify> parse(std::ifstream& is) {
         std::string lexeme;
         char c;
+
         // the same rule as c++ identifier
-        while (std::isalnum(c = is.get()) || c == '_') {
-            lexeme.push_back(c);
+        // the first character must be a letter or an underscore
+        if (!is.get(c)) {
+            throw utils::UnexpectedEOF();
         }
-        if (lexeme.empty()) {
+        if (!std::isalpha(c) && c != '_') {
+            is.unget();
             return std::nullopt;
         }
-        return Identify(lexeme);
+        lexeme.push_back(c);
+        while (true) {
+            if (!is.get(c)) {
+                throw utils::UnexpectedEOF();
+            }
+            if (!std::isalnum(c) && c != '_') {
+                is.unget();
+                break;
+            }
+            lexeme.push_back(c);
+        }
+        return Identify(std::move(lexeme));
     }
 
     private:

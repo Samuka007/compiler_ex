@@ -87,5 +87,6 @@
         "xtree": "cpp",
         "xutility": "cpp"
     },
-    "cmake.sourceDirectory": "/Users/samuka_007/Workspace/compiler_ex/test"
+    "cmake.sourceDirectory": "C:/Users/Administrator/Workspace/Compiler/compiler_ex/src",
+    "cmake.configureOnOpen": true,
 }
