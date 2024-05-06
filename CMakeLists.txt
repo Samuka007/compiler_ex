@@ -5,6 +5,6 @@ project(Compiler)
 set(CMAKE_CXX_STANDARD 20)
 
 # Add the executable target for test_lexer.cpp
-add_executable(test_lexer test_lexer.cpp)
+add_executable(test_lexer src/test_lexer.cpp)
 
 # Add any additional dependencies or compile options here
