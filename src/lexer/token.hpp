@@ -50,9 +50,19 @@ public:
 
     TokenType type() const {
         return std::visit(utils::overloaded {
+            // string literal
             [](Integer) { return TokenType::NUMBER; },
             [](Real) { return TokenType::NUMBER; },
             [](Identify) { return TokenType::IDENTIFIER; }
+        }, this->value);
+    }
+
+    TokenTag tag() const {
+        return std::visit(utils::overloaded {
+            // string literal
+            [](Integer) { return TokenTag::INT; },
+            [](Real) { return TokenTag::DOUBLE; },
+            [](Identify) { return TokenTag::IDENTIFIER; }
         }, this->value);
     }
 
@@ -66,6 +76,7 @@ public:
     Token(std::ifstream& is)
     : inner {
         [&] () {
+            // utils::clean_whitespace(is);
             // parse all static tokens then dynamic tokens
             for (const auto& token : KEYWORDS) {
                 if (token.parse(is)) {
@@ -92,6 +103,15 @@ public:
         }
         return std::visit([](auto&& token){
             return token.type();
+        }, this->inner.value());
+    }
+
+    TokenTag tag() const {
+        if (!this->inner.has_value()) {
+            throw utils::EmptyToken();
+        }
+        return std::visit([](auto&& token){
+            return token.tag();
         }, this->inner.value());
     }
 private:

@@ -27,9 +27,7 @@ namespace lexer {
 
         bool parse(std::ifstream& is) const {
             char c;
-            if (!is.get(c)) {
-                is.exceptions(is.failbit);
-            }
+            is.get(c);
             if (c == this->c) {
                 return true;
             }
@@ -43,6 +41,41 @@ namespace lexer {
         }
     private:
         char c;
+    };
+
+    class Symbol {
+    public:
+        constexpr Symbol(std::string_view symbol)
+            : symbol(symbol) {}
+
+        bool parse(std::ifstream& is) const {
+            char c;
+            for (auto ch {symbol.begin()}; ch != symbol.end(); ++ch) {
+                is.get(c);
+                if (c != *ch) {
+                    if (ch == symbol.begin()) {
+                        // putback the charactors
+                        is.putback(c);
+                        return false;
+                    }
+                    // putback the charactors
+                    is.putback(c);
+                    while(ch != symbol.begin()) {
+                        --ch;
+                        is.putback(*ch);
+                    }
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        friend std::ostream& operator<<(std::ostream& os, const Symbol& keyword) {
+            os << keyword.symbol;
+            return os;
+        }
+    private:
+        std::string_view symbol;
     };
 
     class Keyword {
@@ -88,10 +121,13 @@ namespace lexer {
     class StaticToken_t {
     public:
         constexpr StaticToken_t(TokenTag t, const char keyword)
-            : m_type(t), inner(keyword) {}
+            : m_tag(t), inner(keyword) {}
 
         constexpr StaticToken_t(TokenTag t, std::string_view keyword)
-            : m_type(t), inner(keyword) {}
+            : m_tag(t), inner(Keyword(keyword)) {}
+
+        constexpr StaticToken_t(TokenTag t, Symbol symbol)
+            : m_tag(t), inner(symbol) {}
 
         std::optional<StaticToken_t<T...>> parse(std::ifstream& is) const {
             return std::visit([&](auto&& keyword) -> std::optional<StaticToken_t<T...>> {
@@ -109,25 +145,30 @@ namespace lexer {
             return os;
         }
 
-        TokenType type() const {
+        inline TokenType type() const {
             return std::visit(utils::overloaded {
                 [](Keyword) { return TokenType::KEYWORD; },
+                [](Symbol) { return TokenType::SYMBOL; },
                 [](OneWord) { return TokenType::SYMBOL; }
             }, this->inner);
         }
+
+        inline TokenTag tag() const {
+            return this->m_tag;
+        }
     private:
-        TokenTag m_type;
+        TokenTag m_tag;
         std::variant<T...> inner;
     };
 
-    using StaticToken = StaticToken_t<Keyword, OneWord>;
+    using StaticToken = StaticToken_t<Keyword, OneWord, Symbol>;
     namespace keywords {
-        constexpr StaticToken NE(TokenTag::NOT_EQUAL, "!=");
-        constexpr StaticToken EQ(TokenTag::EQUAL, "==");
-        constexpr StaticToken AND(TokenTag::AND, "&&");
-        constexpr StaticToken OR(TokenTag::OR, "||");
-        constexpr StaticToken GE(TokenTag::GREATER_EQUAL, ">=");
-        constexpr StaticToken LE(TokenTag::LESS_EQUAL, "<=");
+        constexpr StaticToken NE(TokenTag::NOT_EQUAL, Symbol("!="));
+        constexpr StaticToken EQ(TokenTag::EQUAL, Symbol("=="));
+        constexpr StaticToken AND(TokenTag::AND, Symbol("&&"));
+        constexpr StaticToken OR(TokenTag::OR, Symbol("||"));
+        constexpr StaticToken GE(TokenTag::GREATER_EQUAL, Symbol(">="));
+        constexpr StaticToken LE(TokenTag::LESS_EQUAL, Symbol("<="));
 
         constexpr StaticToken VOID(TokenTag::VOID, "void");
         constexpr StaticToken INT(TokenTag::INT, "int");
@@ -158,6 +199,10 @@ namespace lexer {
         constexpr StaticToken A_MINUS(TokenTag::A_MINUS, "minus");
         constexpr StaticToken INDEX(TokenTag::INDEX, "index");
 
+        constexpr StaticToken COMMENT_A(TokenTag::COMMENT_A, Symbol("//"));
+        constexpr StaticToken COMMENT_B_START(TokenTag::COMMENT_B_1, Symbol("/*"));
+        constexpr StaticToken COMMENT_B_END(TokenTag::COMMENT_B_2, Symbol("*/"));
+
         // Onexpre Character Tokens
         constexpr StaticToken SEMICOLON(TokenTag::SEMICOLON, ';');
         constexpr StaticToken COMMA(TokenTag::COMMA, ',');
@@ -180,6 +225,7 @@ namespace lexer {
     } // namespace keywords
 
     constexpr auto KEYWORDS = std::array {
+        keywords::COMMENT_A, keywords::COMMENT_B_START, keywords::COMMENT_B_END,
         keywords::NE, keywords::EQ, keywords::AND, keywords::OR, keywords::GE, keywords::LE,
         keywords::VOID, keywords::INT, keywords::DOUBLE, keywords::BOOL, keywords::STRING,
         keywords::CLASS, keywords::EXTENDS, keywords::FOR, keywords::WHILE, keywords::BREAK,

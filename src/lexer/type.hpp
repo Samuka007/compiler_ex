@@ -29,10 +29,10 @@ enum class TokenTag {
     // true false null this
     TRUE, FALSE, NULL_, THIS, A_MINUS,
 
-    INDEX, TEMP,
+    INDEX, TEMP, IDENTIFIER,
 
     // End of file
-    END_OF_FILE,
+    END_OF_FILE, COMMENT_A, COMMENT_B_1, COMMENT_B_2,
 };
 
 // make token type formatable
