@@ -33,7 +33,6 @@ namespace lexer {
                 }
                 lexeme.push_back(c);
             }
-
         }
 
     private:

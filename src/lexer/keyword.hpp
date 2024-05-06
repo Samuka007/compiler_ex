@@ -11,7 +11,7 @@
 #include <variant>
 #include <array>
 #include "type.hpp"
-#include "../utils.hpp"
+#include "utils.hpp"
 
 namespace lexer {
     template<typename T>

@@ -4,7 +4,6 @@
 #include <fstream>
 #include <sstream>
 #include "lexer/lexer.hpp"
-#include "utils.hpp"
 
 int main()
 {
@@ -17,7 +16,6 @@ int main()
     
     while(is) {
         try {
-            utils::clean_whitespace(is);
             auto result = lexer::lex(is);
             // print using format (TokenType, TokenValue)
             // each output takes 10 spaces
@@ -33,6 +31,7 @@ int main()
         {
             // if eof, break the loop
             if (is.eof()) {
+                std::cout << "End of file." << std::endl;
                 break;
             }
             std::cout << "Caught an ios_base::failure.\n"

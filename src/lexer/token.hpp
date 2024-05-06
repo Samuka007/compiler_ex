@@ -9,7 +9,7 @@
 // #include <string>
 #include <optional>
 #include <variant>
-#include "../utils.hpp"
+#include "utils.hpp"
 #include "identify.hpp"
 #include "string_literals.hpp"
 #include "type.hpp"
@@ -17,11 +17,6 @@
 #include "number.hpp"
 
 namespace lexer {
-
-// template <typename T>
-// concept IsDynamicToken = requires(T t, std::ifstream& is) {
-//     { T::parse(is) } -> std::same_as<std::optional<T>>;
-// };
 
 class DynamicToken {
 public:

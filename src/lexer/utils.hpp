@@ -4,7 +4,7 @@
 #include <string_view>
 #include <iostream>
 
-namespace utils {
+namespace lexer::utils {
     // helper type for the visitor #4
     template<class... Ts>
     struct overloaded : Ts... { using Ts::operator()...; };

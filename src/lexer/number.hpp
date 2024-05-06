@@ -4,8 +4,10 @@
 #define LEXER_NUMBER_HPP
 
 #include <iostream>
+#include <iomanip>
 #include <optional>
 #include <fstream>
+#include <bitset>
 
 namespace lexer {
     enum class NumberBase {
@@ -20,7 +22,21 @@ namespace lexer {
             : value(value), base(base) {}
 
     friend std::ostream& operator<<(std::ostream& os, const Integer& integer) {
-        os << integer.value;
+        // output the value in different base
+        switch (integer.base) {
+            case NumberBase::DECIMAL:
+                os << integer.value;
+                break;
+            case NumberBase::HEXADECIMAL:
+                os << "0x" << std::hex << integer.value;
+                break;
+            case NumberBase::OCTAL:
+                os << "0o" << std::oct << integer.value;
+                break;
+            case NumberBase::BINARY:
+                os << "0b" << std::bitset<sizeof(long) * 8>(integer.value);
+                break;
+        }
         return os;
     }
 
@@ -74,7 +90,7 @@ namespace lexer {
             : value(value) {}
 
     friend std::ostream& operator<<(std::ostream& os, const Real& real) {
-        os << real.value;
+        os << std::fixed << std::setprecision(3) << real.value;
         return os;
     }
 

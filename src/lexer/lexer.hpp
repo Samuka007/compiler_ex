@@ -6,10 +6,8 @@
 
 namespace lexer {
     inline Token lex(std::ifstream& is) {
+        utils::clean_whitespace(is);
         auto tmp = Token(is);
-        if (tmp.tag() == TokenTag::SEMICOLON) {
-            auto a = 1;
-        }
         if (tmp.tag() == TokenTag::COMMENT_A) {
             while (is) {
                 char c;
