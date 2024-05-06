@@ -11,6 +11,7 @@
 #include <variant>
 #include "../utils.hpp"
 #include "identify.hpp"
+#include "string_literals.hpp"
 #include "type.hpp"
 #include "keyword.hpp"
 #include "number.hpp"
@@ -24,15 +25,17 @@ namespace lexer {
 
 class DynamicToken {
 public:
-    using dynamic_type = std::variant<Integer, Real, Identify>;
+    using dynamic_type = std::variant<Integer, Real, StringLiteral, Identify>;
     DynamicToken() = delete;
     DynamicToken(std::ifstream& is)
     : value {
         [&] () {
-        if (auto real = Real::parse(is); real.has_value()) {
-            return dynamic_type(real.value());
-        } else if (auto integer = Integer::parse(is); integer.has_value()) {
+        if (auto integer = Integer::parse(is); integer.has_value()) {
             return dynamic_type(integer.value());
+        } else if (auto real = Real::parse(is); real.has_value()) {
+            return dynamic_type(real.value());
+        } else if (auto str = StringLiteral::parse(is); str.has_value()) {
+            return dynamic_type(str.value());
         } else if (auto identify = Identify::parse(is); identify.has_value()) {
             return dynamic_type(identify.value());
         } else {
@@ -53,6 +56,7 @@ public:
             // string literal
             [](Integer) { return TokenType::NUMBER; },
             [](Real) { return TokenType::NUMBER; },
+            [](StringLiteral) { return TokenType::LITERAL; },
             [](Identify) { return TokenType::IDENTIFIER; }
         }, this->value);
     }
@@ -60,8 +64,9 @@ public:
     TokenTag tag() const {
         return std::visit(utils::overloaded {
             // string literal
-            [](Integer) { return TokenTag::INT; },
-            [](Real) { return TokenTag::DOUBLE; },
+            [](Integer) { return TokenTag::LITERAL; },
+            [](Real) { return TokenTag::LITERAL; },
+            [](StringLiteral) { return TokenTag::LITERAL; },
             [](Identify) { return TokenTag::IDENTIFIER; }
         }, this->value);
     }

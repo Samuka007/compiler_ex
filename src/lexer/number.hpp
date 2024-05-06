@@ -8,10 +8,16 @@
 #include <fstream>
 
 namespace lexer {
+    enum class NumberBase {
+        DECIMAL,
+        HEXADECIMAL,
+        OCTAL,
+        BINARY
+    };
     class Integer {
     public:
-        Integer(long value)
-            : value(value) {}
+        Integer(long value, NumberBase base)
+            : value(value), base(base) {}
 
     friend std::ostream& operator<<(std::ostream& os, const Integer& integer) {
         os << integer.value;
@@ -23,8 +29,32 @@ namespace lexer {
         long value;
         try {
             is.exceptions(is.failbit);
+            if (is.peek() == '0') {
+                is.get();
+                if (is.peek() == 'x' || is.peek() == 'X') {
+                    is.get();
+                    is >> std::hex >> value;
+                    return Integer(value, NumberBase::HEXADECIMAL);
+                }
+                else if (is.peek() == 'b' || is.peek() == 'B') {
+                    is.get();
+                    is >> std::hex >> value;
+                    return Integer(value, NumberBase::BINARY);
+                }
+                else if (is.peek() == 'o' || is.peek() == 'O') {
+                    is >> std::oct >> value;
+                    return Integer(value, NumberBase::OCTAL);
+                }
+                is.unget();
+            }
             is >> value;
-            return Integer(value);
+            if (is.peek() == '.') {
+                is.unget();
+                is.clear();
+                is.seekg(pos);
+                return std::nullopt;
+            }
+            return Integer(value, NumberBase::DECIMAL);
         }
         catch (const std::ios_base::failure& e) {
             is.clear();
@@ -35,6 +65,7 @@ namespace lexer {
 
     private:
         long value;
+        NumberBase base;
     };
 
     class Real {
