@@ -21,13 +21,16 @@ namespace lexer {
     static std::optional<Integer> parse(std::ifstream& is) {
         auto pos = is.tellg();
         long value;
-        is >> value;
-        if (is) {
+        try {
+            is.exceptions(is.failbit);
+            is >> value;
             return Integer(value);
         }
-        is.clear();
-        is.seekg(pos);
-        return std::nullopt;
+        catch (const std::ios_base::failure& e) {
+            is.clear();
+            is.seekg(pos);
+            return std::nullopt;
+        }
     }
 
     private:
@@ -47,12 +50,16 @@ namespace lexer {
     static std::optional<Real> parse(std::ifstream& is) {
         auto pos = is.tellg();
         double value;
-        is >> value;
-        if (is) {
+        try {
+            is.exceptions(is.failbit);
+            is >> value;
             return Real(value);
         }
-        is.seekg(pos);
-        return std::nullopt;
+        catch (const std::ios_base::failure& e) {
+            is.clear();
+            is.seekg(pos);
+            return std::nullopt;
+        }
     }
 
     private:

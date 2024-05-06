@@ -5,11 +5,9 @@
 
 // #include <string>
 // #include <string_view>
-#include <array>
 #include <iostream>
 // #include <string>
 #include <optional>
-#include <string_view>
 #include <variant>
 #include "../utils.hpp"
 #include "identify.hpp"
@@ -50,6 +48,14 @@ public:
         return os;
     }
 
+    TokenType type() const {
+        return std::visit(utils::overloaded {
+            [](Integer) { return TokenType::NUMBER; },
+            [](Real) { return TokenType::NUMBER; },
+            [](Identify) { return TokenType::IDENTIFIER; }
+        }, this->value);
+    }
+
 private:
     dynamic_type value;
 };
@@ -80,7 +86,14 @@ public:
         return os;
     }
 
-
+    TokenType type() const {
+        if (!this->inner.has_value()) {
+            throw utils::EmptyToken();
+        }
+        return std::visit([](auto&& token){
+            return token.type();
+        }, this->inner.value());
+    }
 private:
     std::optional<token_t> inner = std::nullopt;
 };

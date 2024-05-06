@@ -23,18 +23,14 @@ class Identify {
 
         // the same rule as c++ identifier
         // the first character must be a letter or an underscore
-        if (!is.get(c)) {
-            throw utils::UnexpectedEOF();
-        }
+        is.get(c);
         if (!std::isalpha(c) && c != '_') {
             is.unget();
             return std::nullopt;
         }
         lexeme.push_back(c);
         while (true) {
-            if (!is.get(c)) {
-                throw utils::UnexpectedEOF();
-            }
+            is.get(c);
             if (!std::isalnum(c) && c != '_') {
                 is.unget();
                 break;

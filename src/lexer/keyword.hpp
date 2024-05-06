@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <exception>
 #include <string_view>
 #include <optional>
 #include <iostream>
@@ -28,7 +27,10 @@ namespace lexer {
 
         bool parse(std::ifstream& is) const {
             char c;
-            if (is.get(c) && c == this->c) {
+            if (!is.get(c)) {
+                is.exceptions(is.failbit);
+            }
+            if (c == this->c) {
                 return true;
             }
             is.unget();
@@ -56,9 +58,7 @@ namespace lexer {
         bool parse(std::ifstream& is) const {
             char c;
             for (auto ch {lexeme.begin()}; ch != lexeme.end(); ++ch) {
-                if (!is.get(c)) {
-                    throw utils::UnexpectedEOF();
-                }
+                is.get(c);
                 if (c != *ch) {
                     if (ch == lexeme.begin()) {
                         // putback the charactors
@@ -87,10 +87,10 @@ namespace lexer {
     template <IsStaticToken... T>
     class StaticToken_t {
     public:
-        constexpr StaticToken_t(TokenType t, const char keyword)
+        constexpr StaticToken_t(TokenTag t, const char keyword)
             : m_type(t), inner(keyword) {}
-        
-        constexpr StaticToken_t(TokenType t, std::string_view keyword)
+
+        constexpr StaticToken_t(TokenTag t, std::string_view keyword)
             : m_type(t), inner(keyword) {}
 
         std::optional<StaticToken_t<T...>> parse(std::ifstream& is) const {
@@ -108,68 +108,75 @@ namespace lexer {
             }, token.inner);
             return os;
         }
+
+        TokenType type() const {
+            return std::visit(utils::overloaded {
+                [](Keyword) { return TokenType::KEYWORD; },
+                [](OneWord) { return TokenType::SYMBOL; }
+            }, this->inner);
+        }
     private:
-        TokenType m_type;
+        TokenTag m_type;
         std::variant<T...> inner;
     };
 
     using StaticToken = StaticToken_t<Keyword, OneWord>;
     namespace keywords {
-        constexpr StaticToken NE(TokenType::NOT_EQUAL, "!=");
-        constexpr StaticToken EQ(TokenType::EQUAL, "==");
-        constexpr StaticToken AND(TokenType::AND, "&&");
-        constexpr StaticToken OR(TokenType::OR, "||");
-        constexpr StaticToken GE(TokenType::GREATER_EQUAL, ">=");
-        constexpr StaticToken LE(TokenType::LESS_EQUAL, "<=");
+        constexpr StaticToken NE(TokenTag::NOT_EQUAL, "!=");
+        constexpr StaticToken EQ(TokenTag::EQUAL, "==");
+        constexpr StaticToken AND(TokenTag::AND, "&&");
+        constexpr StaticToken OR(TokenTag::OR, "||");
+        constexpr StaticToken GE(TokenTag::GREATER_EQUAL, ">=");
+        constexpr StaticToken LE(TokenTag::LESS_EQUAL, "<=");
 
-        constexpr StaticToken VOID(TokenType::VOID, "void");
-        constexpr StaticToken INT(TokenType::INT, "int");
-        constexpr StaticToken DOUBLE(TokenType::DOUBLE, "double");
-        constexpr StaticToken BOOL(TokenType::BOOL, "bool");
-        constexpr StaticToken STRING(TokenType::STRING, "string");
+        constexpr StaticToken VOID(TokenTag::VOID, "void");
+        constexpr StaticToken INT(TokenTag::INT, "int");
+        constexpr StaticToken DOUBLE(TokenTag::DOUBLE, "double");
+        constexpr StaticToken BOOL(TokenTag::BOOL, "bool");
+        constexpr StaticToken STRING(TokenTag::STRING, "string");
 
-        constexpr StaticToken CLASS(TokenType::CLASS, "class");
-        constexpr StaticToken EXTENDS(TokenType::EXTENDS, "extends");
-        constexpr StaticToken FOR(TokenType::FOR, "for");
-        constexpr StaticToken WHILE(TokenType::WHILE, "while");
-        constexpr StaticToken BREAK(TokenType::BREAK, "break");
-        constexpr StaticToken IF(TokenType::IF, "if");
-        constexpr StaticToken ELSE(TokenType::ELSE, "else");
-        constexpr StaticToken RETURN(TokenType::RETURN, "return");
-        constexpr StaticToken STATIC(TokenType::STATIC, "static");
+        constexpr StaticToken CLASS(TokenTag::CLASS, "class");
+        constexpr StaticToken EXTENDS(TokenTag::EXTENDS, "extends");
+        constexpr StaticToken FOR(TokenTag::FOR, "for");
+        constexpr StaticToken WHILE(TokenTag::WHILE, "while");
+        constexpr StaticToken BREAK(TokenTag::BREAK, "break");
+        constexpr StaticToken IF(TokenTag::IF, "if");
+        constexpr StaticToken ELSE(TokenTag::ELSE, "else");
+        constexpr StaticToken RETURN(TokenTag::RETURN, "return");
+        constexpr StaticToken STATIC(TokenTag::STATIC, "static");
 
-        constexpr StaticToken NEW(TokenType::NEW, "new");
-        constexpr StaticToken NEW_ARRAY(TokenType::NEW_ARRAY, "NewArray");
-        constexpr StaticToken PRINT(TokenType::PRINT, "Print");
-        constexpr StaticToken READ_INTEGER(TokenType::READ_INTEGER, "ReadInteger");
-        constexpr StaticToken READ_LINE(TokenType::READ_LINE, "ReadLine");
+        constexpr StaticToken NEW(TokenTag::NEW, "new");
+        constexpr StaticToken NEW_ARRAY(TokenTag::NEW_ARRAY, "NewArray");
+        constexpr StaticToken PRINT(TokenTag::PRINT, "Print");
+        constexpr StaticToken READ_INTEGER(TokenTag::READ_INTEGER, "ReadInteger");
+        constexpr StaticToken READ_LINE(TokenTag::READ_LINE, "ReadLine");
 
-        constexpr StaticToken FALSE(TokenType::FALSE, "false");
-        constexpr StaticToken TRUE(TokenType::TRUE, "true");
-        constexpr StaticToken NULL_(TokenType::NULL_, "null");
-        constexpr StaticToken THIS(TokenType::THIS, "this");
-        constexpr StaticToken A_MINUS(TokenType::A_MINUS, "minus");
-        constexpr StaticToken INDEX(TokenType::INDEX, "index");
+        constexpr StaticToken FALSE(TokenTag::FALSE, "false");
+        constexpr StaticToken TRUE(TokenTag::TRUE, "true");
+        constexpr StaticToken NULL_(TokenTag::NULL_, "null");
+        constexpr StaticToken THIS(TokenTag::THIS, "this");
+        constexpr StaticToken A_MINUS(TokenTag::A_MINUS, "minus");
+        constexpr StaticToken INDEX(TokenTag::INDEX, "index");
 
         // Onexpre Character Tokens
-        constexpr StaticToken SEMICOLON(TokenType::SEMICOLON, ';');
-        constexpr StaticToken COMMA(TokenType::COMMA, ',');
-        constexpr StaticToken DOT(TokenType::DOT, '.');
-        constexpr StaticToken L_PAREN(TokenType::LEFT_PAREN, '(');
-        constexpr StaticToken R_PAREN(TokenType::RIGHT_PAREN, ')');
-        constexpr StaticToken L_SQUARE(TokenType::LEFT_BRACKET, '[');
-        constexpr StaticToken R_SQUARE(TokenType::RIGHT_BRACKET, ']');
-        constexpr StaticToken L_BRACE(TokenType::LEFT_BRACE, '{');
-        constexpr StaticToken R_BRACE(TokenType::RIGHT_BRACE, '}');
-        constexpr StaticToken PLUS(TokenType::PLUS, '+');
-        constexpr StaticToken MINUS(TokenType::MINUS, '-');
-        constexpr StaticToken STAR(TokenType::STAR, '*');
-        constexpr StaticToken DIVIDE(TokenType::SLASH, '/');
-        constexpr StaticToken MODULO(TokenType::MODULO, '%');
-        constexpr StaticToken LESS(TokenType::LESS, '<');
-        constexpr StaticToken GREATER(TokenType::GREATER, '>');
-        constexpr StaticToken BANG(TokenType::BANG, '!');
-        constexpr StaticToken ASSIGN(TokenType::ASSIGN, '=');
+        constexpr StaticToken SEMICOLON(TokenTag::SEMICOLON, ';');
+        constexpr StaticToken COMMA(TokenTag::COMMA, ',');
+        constexpr StaticToken DOT(TokenTag::DOT, '.');
+        constexpr StaticToken L_PAREN(TokenTag::LEFT_PAREN, '(');
+        constexpr StaticToken R_PAREN(TokenTag::RIGHT_PAREN, ')');
+        constexpr StaticToken L_SQUARE(TokenTag::LEFT_BRACKET, '[');
+        constexpr StaticToken R_SQUARE(TokenTag::RIGHT_BRACKET, ']');
+        constexpr StaticToken L_BRACE(TokenTag::LEFT_BRACE, '{');
+        constexpr StaticToken R_BRACE(TokenTag::RIGHT_BRACE, '}');
+        constexpr StaticToken PLUS(TokenTag::PLUS, '+');
+        constexpr StaticToken MINUS(TokenTag::MINUS, '-');
+        constexpr StaticToken STAR(TokenTag::STAR, '*');
+        constexpr StaticToken DIVIDE(TokenTag::SLASH, '/');
+        constexpr StaticToken MODULO(TokenTag::MODULO, '%');
+        constexpr StaticToken LESS(TokenTag::LESS, '<');
+        constexpr StaticToken GREATER(TokenTag::GREATER, '>');
+        constexpr StaticToken BANG(TokenTag::BANG, '!');
+        constexpr StaticToken ASSIGN(TokenTag::ASSIGN, '=');
     } // namespace keywords
 
     constexpr auto KEYWORDS = std::array {

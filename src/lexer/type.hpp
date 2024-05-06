@@ -1,15 +1,14 @@
 #pragma once
 
+#include <iostream>
+
 namespace lexer {
 
-// public class Tag {
-// 	public final static int AND = 256, BASIC = 257, BREAK = 258, DO = 259,
-// 			ELSE = 260, EQ = 261, FALSE = 262, GE = 263, ID = 264, IF = 265,
-// 			INDEX = 266, LE = 267, MINUS = 268, NE = 269, NUM = 270, OR = 271,
-// 			REAL = 272, TEMP = 273, TRUE = 274, WHILE = 275;
-// }
-
 enum class TokenType {
+    IDENTIFIER, LITERAL, KEYWORD, SYMBOL, NUMBER
+};
+
+enum class TokenTag {
     // Single-character tokens
     // + - * / % \ < > = 
     // ! ; , . [ ] ( ) { }
@@ -17,9 +16,6 @@ enum class TokenType {
     LESS, GREATER, ASSIGN,
     BANG, SEMICOLON, COMMA, DOT, LEFT_BRACKET, RIGHT_BRACKET,
     LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
-
-    // Literals
-    IDENTIFIER,
 
     // Keywords
     // multi ch
@@ -38,5 +34,27 @@ enum class TokenType {
     // End of file
     END_OF_FILE,
 };
+
+// make token type formatable
+inline std::ostream& operator<<(std::ostream& os, const TokenType& type) {
+    switch (type) {
+        case TokenType::IDENTIFIER:
+            os << "ID";
+            break;
+        case TokenType::LITERAL:
+            os << "LIT";
+            break;
+        case TokenType::KEYWORD:
+            os << "KEY";
+            break;
+        case TokenType::SYMBOL:
+            os << "SYM";
+            break;
+        case TokenType::NUMBER:
+            os << "NUM";
+            break;
+    }
+    return os;
+}
 
 }
