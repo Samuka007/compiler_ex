@@ -3,13 +3,13 @@ class Main {
     class Fibonacci f = new Fibonacci();//new a Fibonacci
     Print(f.get(ReadInteger()));
     String s = "Hello!";
-    Print(s);
+    @Print(s);
   }
 }
 class Fibonacci {
   int get(int i){
     if(i<0x16){
-      double num = 12.;
+      double num_new = 12.;
       return 1;
     }
     return get(i-1) + get(i-2);

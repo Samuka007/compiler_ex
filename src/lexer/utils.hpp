@@ -32,13 +32,6 @@ namespace lexer::utils {
         std::string_view message;
     };
 
-    // unexpected end of file or broken stream
-    class UnexpectedEOF : public CompilerException {
-    public:
-        UnexpectedEOF()
-            : CompilerException("Unexpected end of file") {}
-    };
-
     // unexpected token
     class UnexpectedToken : public CompilerException {
     public:
@@ -51,29 +44,5 @@ namespace lexer::utils {
     public:
         EmptyToken()
             : CompilerException("Empty token") {}
-    };
-
-    class BadiStream : std::exception {
-    public:
-        BadiStream(std::istream& is)
-            :  is{is} {}
-        void what() {
-            std::cerr << "Bad input stream" << std::endl;
-            // print stream state and current position
-            // std::cerr << "Stream state: " << is.rdstate() << std::endl;
-            // convert stream state to human readable format
-            if (is.rdstate() & std::ios::failbit) {
-                std::cerr << "Fail bit is set" << std::endl;
-            }
-            if (is.rdstate() & std::ios::badbit) {
-                std::cerr << "Bad bit is set" << std::endl;
-            }
-            if (is.rdstate() & std::ios::eofbit) {
-                std::cerr << "EOF bit is set" << std::endl;
-            }
-            std::cerr << "Stream position: " << is.tellg() << std::endl;
-        }
-    private:
-        std::istream& is;
     };
 }

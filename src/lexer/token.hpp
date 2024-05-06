@@ -3,10 +3,7 @@
 #ifndef LEXER_TOKEN_HPP
 #define LEXER_TOKEN_HPP
 
-// #include <string>
-// #include <string_view>
 #include <iostream>
-// #include <string>
 #include <optional>
 #include <variant>
 #include "utils.hpp"

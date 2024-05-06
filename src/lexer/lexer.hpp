@@ -1,12 +1,14 @@
 #pragma once
 
 #include <fstream>
+#include <iostream>
 #include "type.hpp"
 #include "token.hpp"
 
 namespace lexer {
-    inline Token lex(std::ifstream& is) {
+    Token lex(std::ifstream& is) {
         utils::clean_whitespace(is);
+        try{
         auto tmp = Token(is);
         if (tmp.tag() == TokenTag::COMMENT_A) {
             while (is) {
@@ -34,5 +36,9 @@ namespace lexer {
             return lex(is);
         }
         return tmp;
+        } catch (utils::UnexpectedToken& e) {
+            std::cerr << "ERROR: unknow symbol: \"" << static_cast<char>(is.get()) << "\"" << std::endl;
+            return lex(is);
+        }
     }
 }

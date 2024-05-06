@@ -1,7 +1,5 @@
 // token for integer
-
-#ifndef LEXER_NUMBER_HPP
-#define LEXER_NUMBER_HPP
+#pragma once
 
 #include <iostream>
 #include <iomanip>
@@ -113,5 +111,3 @@ namespace lexer {
         double value;
     };
 }
-
-#endif // LEXER_NUMBER_HPP
